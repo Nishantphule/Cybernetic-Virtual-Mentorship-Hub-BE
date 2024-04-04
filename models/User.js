@@ -14,6 +14,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    topics: {
+        type: Array,
+    },
     emailId: {
         type: String,
         required: true

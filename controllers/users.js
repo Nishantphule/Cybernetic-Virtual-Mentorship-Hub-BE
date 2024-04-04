@@ -8,7 +8,7 @@ const User = require("../models/User");
 const userController = {
     register: async (req, res) => {
         try {
-            const { fullname, username, role, email, password } = req.body;
+            const { fullname, username, role, topics, email, password } = req.body;
 
             const existingUserEmail = await User.findOne({ emailId: email });
             const existingUserName = await User.findOne({ username });
@@ -22,18 +22,34 @@ const userController = {
             else {
                 const saltRounds = 10;
                 const hashedPassword = await bcrypt.hash(password, saltRounds);
+                if (role === "mentor") {
+                    const user = new User({
+                        fullname,
+                        username,
+                        role,
+                        topics,
+                        emailId: email,
+                        password: hashedPassword
+                    })
 
-                const user = new User({
-                    fullname,
-                    username,
-                    role,
-                    emailId: email,
-                    password: hashedPassword
-                })
+                    const savedUser = await user.save()
+                    // res.send({ "message": "Successful Registeration", token: token })
+                    res.status(201).json({ message: 'Successful Registeration', user: savedUser });
+                }
+                else {
+                    const user = new User({
+                        fullname,
+                        username,
+                        role,
+                        emailId: email,
+                        password: hashedPassword
+                    })
 
-                const savedUser = await user.save()
-                // res.send({ "message": "Successful Registeration", token: token })
-                res.status(201).json({ message: 'Successful Registeration', user: savedUser });
+                    const savedUser = await user.save()
+                    // res.send({ "message": "Successful Registeration", token: token })
+                    res.status(201).json({ message: 'Successful Registeration', user: savedUser });
+                }
+
             }
 
         } catch (error) {
@@ -55,7 +71,7 @@ const userController = {
                 if (isPasswordMatch) {
                     const token = jwt.sign({ id: user.userId }, config.SECRET_KEY)
                     res.header({ "x-auth-token": token })
-                    res.send({ "message": "Successful Login", token: token, user: user })
+                    res.send({ "message": "Successful Login", token, user })
                 }
                 else {
                     res.send({ message: "Invalid Credentials" })
